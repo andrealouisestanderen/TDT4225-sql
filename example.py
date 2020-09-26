@@ -10,7 +10,6 @@ class ExampleProgram:
         self.cursor = self.connection.cursor
 
     def create_table(self, table_name, query):
-
         # This adds table_name to the %s variable and executes the query
         self.cursor.execute(query % table_name)
         self.db_connection.commit()
@@ -47,7 +46,7 @@ class ExampleProgram:
 
 
 def main():
-    query_user = """CREATE TABLE IF NOT EXISTS User (
+    query_user = """CREATE TABLE IF NOT EXISTS %s (
                     id STRING NOT NULL PRIMARY KEY,
                     has_labels BOOLEAN)
                 """
