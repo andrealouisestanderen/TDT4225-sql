@@ -9,11 +9,8 @@ class ExampleProgram:
         self.db_connection = self.connection.db_connection
         self.cursor = self.connection.cursor
 
-    def create_table(self, table_name):
-        query = """CREATE TABLE IF NOT EXISTS %s (
-                   id INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
-                   name VARCHAR(30))
-                """
+    def create_table(self, table_name, query):
+
         # This adds table_name to the %s variable and executes the query
         self.cursor.execute(query % table_name)
         self.db_connection.commit()
@@ -50,20 +47,55 @@ class ExampleProgram:
 
 
 def main():
+    query_user = """CREATE TABLE IF NOT EXISTS User (
+                    id STRING NOT NULL PRIMARY KEY,
+                    has_labels BOOLEAN)
+                """
+
+    query_activity = """CREATE TABLE IF NOT EXISTS %s (
+                        id INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
+                        user_id VARCHAR(30) REFERENCES User(id),
+                        transportation_mode VARCHAR(30),
+                        start_date_time DATETIME,
+                        end_date_time DATETIME)
+                     """
+
+    query_trackpoint = """CREATE TABLE IF NOT EXISTS %s (
+                          id INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
+                          activity_id INT FOREIGN KEY REFERENCES Activity(id)
+                          lat DOUBLE, 
+                          lon DOUBLE,
+                          altitude INT,
+                          date_days DOUBLE,
+                          date_time DATETIME)
+                       """
+
     program = None
+
     try:
+        program = ExampleProgram()
+
+        program.create_table(table_name="User",query=query_user)
+        program.create_table(table_name="Activity",query=query_activity)
+
+        program.create_table(table_name="TrackPoint", query=query_trackpoint)
+
+    except Exception as e:
+        print("ERROR: Failed to use database:", e)
+    finally:
+        if program:
+            program.connection.close_connection()
+
+    """try:
         program = ExampleProgram()
         program.create_table(table_name="Person")
         program.insert_data(table_name="Person")
         _ = program.fetch_data(table_name="Person")
         program.drop_table(table_name="Person")
         # Check that the table is dropped
-        program.show_tables()
-    except Exception as e:
-        print("ERROR: Failed to use database:", e)
-    finally:
-        if program:
-            program.connection.close_connection()
+        program.show_tables()"""
+
+
 
 
 if __name__ == '__main__':
