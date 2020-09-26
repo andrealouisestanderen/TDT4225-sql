@@ -47,7 +47,7 @@ class ExampleProgram:
 
 def main():
     query_user = """CREATE TABLE IF NOT EXISTS %s (
-                    id STRING NOT NULL PRIMARY KEY,
+                    id VARCHAR(30) NOT NULL PRIMARY KEY,
                     has_labels BOOLEAN)
                 """
 
@@ -61,7 +61,7 @@ def main():
 
     query_trackpoint = """CREATE TABLE IF NOT EXISTS %s (
                           id INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
-                          activity_id INT FOREIGN KEY REFERENCES Activity(id)
+                          activity_id INT REFERENCES Activity(id),
                           lat DOUBLE, 
                           lon DOUBLE,
                           altitude INT,
