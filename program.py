@@ -16,8 +16,9 @@ class Program:
         # Read id for each person
         self.subfolders = [ f.name for f in os.scandir("dataset/Data") if f.is_dir() ]
         self.subfolders.sort()
+        self.ids = tuple(self.subfolders)
         # Set of all users that are labeled
-        self.labeled = set(self.file_reader("dataset/labeled_ids.txt"))
+        self.labeled = set(self.file_reader("dataset/labeled_ids.txt", False))
 
     def create_table(self, table_name, query):
         # This adds table_name to the %s variable and executes the query
@@ -37,12 +38,26 @@ class Program:
 
     def drop_table(self, table_name):
         print("Dropping table %s..." % table_name)
-        query = "DROP TABLE %s"
+        query = "DROP TABLE IF EXISTS %s"
         self.cursor.execute(query % table_name)
 
-    def file_reader(self, filepath):
+    def file_reader(self, filepath, read_trajectory):
         f = open(filepath, "r")
-        file = f.read().splitlines()
+        file = []
+        i = -6
+        for line in f:
+            file.append(line.strip())
+            i+=1
+            if i > 2500: # Checking if file is too long
+                f.close()
+                return None, None
+        if read_trajectory: #Getting the values if it is a trajectory
+            first_point = file[6].strip()
+            last_point = file[-1]
+            start_time = first_point[-19:].replace(',', ' ')
+            end_time = last_point[-19:].replace(',', ' ')
+            return start_time, end_time
+        f.close()
         return file
 
     def make_user(self):
@@ -53,27 +68,71 @@ class Program:
                 query = "INSERT INTO User (id, has_labels) VALUES ('%s', 0);"
             self.cursor.execute(query % (id))
         self.db_connection.commit()
-    
-    def make_activity(self):
-        '''for i,(root, dir, files) in enumerate(os.walk('dataset/Data', topdown=True)):
-            print("1")
-            print("counter:", i)'''
-        for id in self.subfolders:
-            if id in self.labeled:
-                for (files) in os.walk('dataset/Data/'+ id, topdown=True):
-                    transportation_modes = self.file_reader('dataset/Data/'+id+'/'+'labels.txt')
-                    for transportation_mode in transportation_modes[1:]:
-                        mode = transportation_mode[40:].strip()
-                        start_date_time = transportation_mode[0:20].strip().replace("/", "-")
-                        end_date_time = transportation_mode[20:40].strip().replace("/", "-")
-                        query = "INSERT INTO Activity (user_id, transportation_mode, start_date_time, end_date_time) VALUES ('%s', '%s', '%s', '%s')"
-                        self.cursor.execute(query % (id, mode, start_date_time, end_date_time))
-                        
-        self.db_connection.commit()
-        print("Done")
         
-        # activity in dir:
-                
+    '''def short_file(self, filepath):
+        number_of_lines = sum(1 for line in open(filepath))
+        return (number_of_lines - 6) <= 2500'''
+
+    '''def read_trajectory(self, filepath):
+        trackpoints = self.file_reader(filepath)
+        first_point = trackpoints[6].strip()
+        last_point = trackpoints[-1]
+        start_time = first_point[-19:].replace(',', ' ')
+        end_time = last_point[-19:].replace(',', ' ')
+
+        return start_time, end_time'''
+
+
+    def make_activity(self):
+        # Iterates over all the users
+        for id in self.ids:
+            # Checking if they are labeled
+            if id in self.labeled:
+                print(id, "is labeled.")
+                # Going through the files (bottom up, so the .plt-files)
+                for (root, dirs, files) in os.walk('dataset/Data/'+ id, topdown=False):
+                   i = 1
+                   for file in files:
+                        print("FILE NR;", i)
+                        i+=1
+                        # Checking if .plt-file has under 2500 lines and that it is not a ignore-file
+                        print("TRUE OR FALSE:", (not file.startswith('.')) and (self.file_reader(os.path.join(root, file), False)[0]!=None))
+                        if (not file.startswith('.')) and (self.file_reader(os.path.join(root, file), False)[0]!=None):
+                            #må finne måte å finne riktig linje i labels på, hvis plt-fil ikke er for lang
+                            data = self.file_reader('dataset/Data/'+id+'/'+'labels.txt', False)
+                            for line in data[1:]:
+                                print("...")
+                                transportation_mode = line[40:].strip()
+                                start_date_time = line[0:20].strip().replace("/", "-")
+                                end_date_time = line[20:40].strip().replace("/", "-")
+                                query = "INSERT INTO Activity (user_id, transportation_mode, start_date_time, end_date_time) VALUES ('%s', '%s', '%s', '%s')"
+                                self.cursor.execute(query % (id, transportation_mode, start_date_time, end_date_time))
+                                self.db_connection.commit()
+                            break
+                        else:
+                            continue
+                #får dobbelt opp med labeled. Fikk 868 med id 010
+            else:
+                print(id, "is not labeled.")
+                # Going through the files for non-labeled users
+                for (root, dirs, files) in os.walk('dataset/Data/'+ id, topdown=False):
+                    for file in files:
+                        #Ignoring .-files
+                        if not file.startswith('.'):
+                            # Saving data
+                            start_date_time, end_date_time = self.file_reader(os.path.join(root, file), True)
+                            #Start_date_time = None if the file is too long
+                            if start_date_time:
+                                transportation_mode = "-"
+                                query = "INSERT INTO Activity (user_id, transportation_mode, start_date_time, end_date_time) VALUES ('%s', '%s', '%s', '%s')"
+                                self.cursor.execute(query % (id, transportation_mode, start_date_time, end_date_time))
+                                self.db_connection.commit()
+                        else:
+                            continue
+        #self.db_connection.commit()
+
+
+
 
 
 def main():
@@ -108,7 +167,6 @@ def main():
 
     try:
         program = Program()
-
 
         program.drop_table(table_name="TrackPoint")
         program.drop_table(table_name="Activity")
