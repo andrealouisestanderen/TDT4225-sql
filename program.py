@@ -214,24 +214,16 @@ def main():
     try:
         program = Program()
 
-        program.drop_table(table_name="TrackPoint")
-        program.drop_table(table_name="Activity")
+        #program.drop_table(table_name="TrackPoint")
+        #program.drop_table(table_name="Activity")
         #program.drop_table(table_name="User")
 
         #program.create_table(table_name="User",query=query_user)
-        print("USER")
-        program.create_table(table_name="Activity",query=query_activity)
-        print("ACTIVITY")
-        program.create_table(table_name="TrackPoint", query=query_trackpoint)
-        print("TP")   
+        #program.create_table(table_name="Activity",query=query_activity)
+        #program.create_table(table_name="TrackPoint", query=query_trackpoint)
 
         #program.make_user()
-        print("MAKE USER")
-        program.make_activity()
-        print("MAKE ACTIVITY")
-
-        #program.make_trackpoint()
-        print("MAKE ACTIVITY")
+        #program.make_activity()
 
         _ = program.fetch_data(table_name="Activity")
 
