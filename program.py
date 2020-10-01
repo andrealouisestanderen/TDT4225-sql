@@ -104,8 +104,6 @@ class Program:
                         if not file.startswith('.'):
                             # Saving data
                             start_date_time, end_date_time = self.file_reader(os.path.join(root, file), True, user_id)
-                            if self.long_files.get(user_id):
-                                print("ID:"+user_id+ "    SET:"+ str(self.long_files.get(user_id)))
                             #Start_date_time = None if the file is too long
                             if start_date_time:
                                 transportation_mode = "-"
@@ -113,7 +111,7 @@ class Program:
                                 self.cursor.execute(query % (user_id, transportation_mode, start_date_time, end_date_time))
                                 self.db_connection.commit()
                                 self.make_trackpoint(activity_id, user_id)
-
+                                print("ACTIVITY IS INSERTED:", activity_id)
                                 activity_id+=1
                         else:
                             continue
@@ -133,8 +131,8 @@ class Program:
                                 query = "INSERT INTO Activity (user_id, transportation_mode, start_date_time, end_date_time) VALUES ('%s', '%s', '%s', '%s')"
                                 self.cursor.execute(query % (user_id, transportation_mode, start_date_time, end_date_time))
                                 self.db_connection.commit()
-                                self.make_trackpoint(activity_id)
-
+                                self.make_trackpoint(activity_id, user_id)
+                                print("ACTIVITY IS INSERTED:", activity_id)
                                 activity_id+=1
                         else:
                             continue
@@ -147,38 +145,34 @@ class Program:
         for line in f:
             i+=1
             if i>6:
-                print('printer linje i tp' + line)
                 trackpoint = line.split(",")
-                date_time = trackpoint[5].replace("-", "/") + " " + trackpoint[6].strip()
+
+                trackpoint[0]=float(trackpoint[0])
+                trackpoint[1]=float(trackpoint[1])
+                trackpoint[3]=float(trackpoint[3])
+                trackpoint[4]=float(trackpoint[4])
+
+                date_time = trackpoint[5].strip() + " " + trackpoint[6].strip()
                 trackpoint[5] = date_time
                 trackpoint.pop(2)
                 trackpoint.insert(0, activity_id)
-                tuppel = tuple(trackpoint[0:6])
-                print("TUPPEL", tuppel)
+                trackpoint=trackpoint[0:6]
+                tuppel = tuple(trackpoint)
                 data.append(tuppel)
-        print("DATA:" ,data)
+
         return data
 
 
 
     def make_trackpoint(self, activity_id, user_id):
-        print("MAKing TP")
         #query mangler activity_id
-        query = "INSERT INTO TrackPoint (activity_id, lat, lon, altitude, date_days, date_time) VALUES (%s, %s, %s, %s, %s, '%s')"
-        print("MAKE TP 1")
+        query = "INSERT INTO TrackPoint (activity_id, lat, lon, altitude, date_days, date_time) VALUES (%s, %s, %s, %s, %s, %s)"
         for (root, dirs, files) in os.walk('dataset/Data/'+ user_id, topdown=False):
-            print("MAKE TP 2")
             for file in files:
-                print("MAKE TP 3 ")
-                print("FILE:", file, )
-
-                print('Longfiles set ' + str(self.long_files.get(user_id)))
-                if (user_id in self.long_files and file not in self.long_files.get(user_id)):
-                    print("4")
+                if (not (file.startswith('.'))) and (user_id in self.long_files and file not in self.long_files.get(user_id)):
                     trackpoints = self.file_reader_trackpoint(os.path.join(root, file), activity_id)
-                    print("5")
                     self.cursor.executemany(query, trackpoints)
-    
+                    self.db_connection.commit()
 
 
 
