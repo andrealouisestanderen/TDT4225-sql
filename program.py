@@ -23,6 +23,7 @@ class Program:
 
     def create_table(self, table_name, query):
         # This adds table_name to the %s variable and executes the query
+        print("Creating table %s..." % table_name)
         self.cursor.execute(query % table_name)
         self.db_connection.commit()
 
@@ -174,12 +175,74 @@ class Program:
                     self.cursor.executemany(query, trackpoints)
                     self.db_connection.commit()
 
+    def make_trackpoint_test(self, activity_id, user_id):
+        trackpoints = []
+        i = 0
+        print("Start")
+        for (root, dirs, files) in os.walk('dataset/Data/'+ user_id, topdown=False):
+            print("Root: ", root)
+            print("Dirs: ", dirs)
+            print("Files: ", files)
+            for file in files:
+                if not (file.startswith('.')):
+                    trackpoints.append(self.file_reader_trackpoint(os.path.join(root, file), activity_id))
+                    print("Added trackpoint" + str(i))
+                    i+=1
+        return trackpoints
+
+    def insert_data(self):
+        for id in self.subfolders:
+            if id in self.labeled:
+                query = "INSERT INTO User (id, has_labels) VALUES('%s', 1)"
+            else:
+                query = "INSERT INTO User (id, has_labels) VALUES ('%s', 0);"
+            self.cursor.execute(query % id)
+            print("Inserted user %s" % id)
+            activity_id = 1
+            # Going through the files for non-labeled users
+            if id not in self.labeled:
+                labeled = False
+            else:
+                labeled = True
+            for (root, dirs, files) in os.walk('dataset/Data/'+ id, topdown=False):
+                for file in files:
+                    # Ignoring .-files, labels.txt and files with more than 2500 trackpoints
+                    if not file.startswith('.') and file != 'labels.txt' and self.count_lines(os.path.join(root, file)) < 2506:
+                        # Saving data
+                        start_date_time, end_date_time = self.file_reader(os.path.join(root, file), True, id)
+                        # Start_date_time = None if the file is too long
+                        if start_date_time:
+                            if labeled:
+                                labels = self.read_labels('dataset/Data/' + id + '/labels.txt')
+                                if start_date_time in labels:
+                                    transportation_mode = labels.get(start_date_time)
+                                else:
+                                    transportation_mode = '-'
+                            else:
+                                transportation_mode = '-'
+                            query = "INSERT INTO Activity (user_id, transportation_mode, start_date_time, end_date_time) VALUES ('%s', '%s', '%s', '%s')"
+                            self.cursor.execute(
+                                query % (id, transportation_mode, start_date_time, end_date_time))
+                            self.db_connection.commit()
+                            query = "INSERT INTO TrackPoint (activity_id, lat, lon, altitude, date_days, date_time) VALUES (%s, %s, %s, %s, %s, %s)"
+                            trackpoints = self.file_reader_trackpoint(os.path.join(root, file), activity_id)
+                            self.cursor.executemany(query, trackpoints)
+                            self.db_connection.commit()
+                            print("ACTIVITY IS INSERTED:", activity_id)
+                            activity_id += 1
+
+                    else:
+                        continue
+
+        self.db_connection.commit()
 
 
-
-
-
-        
+    @staticmethod
+    def count_lines(file):
+        with open(file) as f:
+            for i, l in enumerate(f):
+                pass
+        return i + 1
 
 def main():
     query_user = """CREATE TABLE IF NOT EXISTS %s (
@@ -224,8 +287,9 @@ def main():
 
         #program.make_user()
         #program.make_activity()
+        #program.insert_data()
 
-        _ = program.fetch_data(table_name="Activity")
+        _ = program.fetch_data(table_name="TrackPoint")
 
     except Exception as e:
         print("ERROR: Failed to use database:", e)
@@ -233,9 +297,6 @@ def main():
         if program:
             program.connection.close_connection()
 
-
-
-    
 
 
 if __name__ == '__main__':
