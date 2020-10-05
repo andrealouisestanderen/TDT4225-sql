@@ -47,7 +47,6 @@ def TopNUsersMostActivities(program, n):
             'GROUP BY User.id ORDER BY ActivitiesCount DESC LIMIT ' + str(n))
     program.cursor.execute(query)
     result = program.cursor.fetchall()
-    print("Top " + str(n) + " users with highest number of activities: " + str(result))
     for i, res in enumerate(result):
         print("Rank:    " + str(i+1) + "    |     "
             "User:    " + str(res[0]) + "    |     "
@@ -60,8 +59,18 @@ def TopNUsersMostActivities(program, n):
 """
 
 
-def UsersTakeTaxi():
-    query = ''
+def UsersTakeTaxi(program):
+    query = ('SELECT DISTINCT User.id, '
+            'Activity.transportation_mode FROM User '
+            'INNER JOIN Activity ON User.id=Activity.user_id '
+            'WHERE Activity.transportation_mode="taxi"')
+    program.cursor.execute(query)
+    result = program.cursor.fetchall()
+    print("Users who have taken taxi: \n")
+    for res in result:
+        print("|    User:       " + str(res[0]) + "     |")
+    print("\n\nTotal number of users who have taken taxi: " + str(len(result)))
+    program.db_connection.commit()
 
 
 """
@@ -71,8 +80,19 @@ def UsersTakeTaxi():
 """
 
 
-def TypesAndAmountofTransportationModes():
-    query = ''
+def TypesAndAmountofTransportationModes(program):
+    query = ('SELECT Activity.transportation_mode, '
+            'Count(Activity.transportation_mode) AS TransportationCount '
+            'FROM Activity WHERE Activity.transportation_mode!="-" '
+            'GROUP BY Activity.transportation_mode '
+            'ORDER BY TransportationCount DESC')
+    program.cursor.execute(query)
+    result = program.cursor.fetchall()
+    print("Transportation modes: \n")
+    for res in result:
+        print("|    Transportation mode: " + str(res[0] + ",").ljust(15) +
+            "Number of times used: " + str(res[1]).ljust(15) + "|")
+    program.db_connection.commit()
 
 
 """
@@ -81,18 +101,48 @@ def TypesAndAmountofTransportationModes():
 """
 
 
-def YearMostActivities():
-    query = ''
+def YearMostActivities(program):
+    query = ('SELECT Year, ActivitiesPerYear FROM '
+            '(SELECT YEAR(Activity.start_date_time) AS Year, '
+            'COUNT(*) AS ActivitiesPerYear FROM Activity '
+            'GROUP BY Year '
+            'ORDER BY ActivitiesPerYear DESC) AS YearAct')
+    program.cursor.execute(query)
+    result = program.cursor.fetchall()[0]
+    print("Year: " + str(result[0]) + 
+            " has the most activities, with: " + 
+            str(result[1]) + " actvivities.")
+    program.db_connection.commit()
+    return str(result[0])
 
 
-def YearMostRecordedHours():
-    query = ''
+def YearMostRecordedHours(program):
+    query = ('SELECT Year, SUM(Hours) AS HoursOfYear FROM '
+            '(SELECT YEAR(Activity.start_date_time) AS Year, '
+            'TIMEDIFF(Activity.end_date_time, Activity.start_date_time) AS Hours '
+            'FROM Activity) AS YearHours '
+            'GROUP BY Year '
+            'ORDER BY HoursOfYear DESC')
+    program.cursor.execute(query)
+    result = program.cursor.fetchall()[0]
+    print("Year: " + str(result[0]) + 
+            " has the most recorded hours, with: " +
+            str(result[1]) + " recorded hours.\n\n")
+    program.db_connection.commit()
+    return str(result[0])
 
 
-def MostActivitiesAndRecordedHours():
-    most_activities_year = YearMostActivities()
-    most_recorded_hours_year = YearMostRecordedHours()
-    return most_activities_year == most_recorded_hours_year
+def MostActivitiesAndRecordedHours(program):
+    most_activities_year = YearMostActivities(program)
+    most_recorded_hours_year = YearMostRecordedHours(program)
+    same_year = str(most_activities_year == most_recorded_hours_year)
+    if most_activities_year == most_recorded_hours_year:
+        print("The year with the most activities, " + most_activities_year +
+                " is also the year with most recorded hours.")
+    else:
+        print("The year with the most activities, " + most_activities_year +
+                " is not the same year with most recorded hours, " +
+                most_recorded_hours_year + ".")
 
 
 """

@@ -242,6 +242,11 @@ class Program:
         #queries.NumberOfUsersActivitiesTrackpoints(self) # task 1
         #queries.AverageNumberOfActivities(self) # task 2
         #queries.TopNUsersMostActivities(self, 20) # task 3
+        #queries.UsersTakeTaxi(self) # task 4
+        #queries.TypesAndAmountofTransportationModes(self) # task 5
+        #queries.YearMostActivities(self) # task 6a
+        #queries.YearMostRecordedHours(self) # task 6b
+        queries.MostActivitiesAndRecordedHours(self)
 
 
 
