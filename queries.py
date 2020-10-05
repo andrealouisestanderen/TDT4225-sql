@@ -25,11 +25,15 @@ def NumberOfUsersActivitiesTrackpoints(program):
 
 
 def AverageNumberOfActivities(program):
-    #query = 'SELECT COUNT(Activity.id) FROM User INNER JOIN Activity ON User.id=Activity.user_id GROUP BY User.id'
-    query = 'SELECT AVG(ActivitiesCount) FROM (SELECT User.id AS UserID, COUNT(*) AS ActivitiesCount FROM User INNER JOIN Activity ON User.id=Activity.user_id GROUP BY User.id) AS avgAct'
+    query = ('SELECT AVG(ActivitiesCount) FROM '
+            '(SELECT User.id AS UserID, COUNT(*) AS ActivitiesCount FROM '
+            'User INNER JOIN Activity ON User.id=Activity.user_id '
+            'GROUP BY User.id) AS avgAct')
     program.cursor.execute(query)
-    result = str(program.cursor.fetchall()[0])[10:-4] # Should be derrived in a different manner
+    # Should be derrived in a different manner:
+    result = str(program.cursor.fetchall()[0])[10:-4]
     print("Average number of activities per user: " + result)
+    program.db_connection.commit()
 
 
 """
@@ -37,8 +41,18 @@ def AverageNumberOfActivities(program):
 """
 
 
-def TopNUsersMostActivities(n):
-    query = ''
+def TopNUsersMostActivities(program, n):
+    query = ('SELECT User.id AS UserID, COUNT(*) AS ActivitiesCount FROM '
+            'User INNER JOIN Activity ON User.id=Activity.user_id '
+            'GROUP BY User.id ORDER BY ActivitiesCount DESC LIMIT ' + str(n))
+    program.cursor.execute(query)
+    result = program.cursor.fetchall()
+    print("Top " + str(n) + " users with highest number of activities: " + str(result))
+    for i, res in enumerate(result):
+        print("Rank:    " + str(i+1) + "    |     "
+            "User:    " + str(res[0]) + "    |     "
+            "# of activities:  " + str(res[1]) + ".")
+    program.db_connection.commit()
 
 
 """
