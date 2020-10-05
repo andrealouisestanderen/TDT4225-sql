@@ -239,7 +239,8 @@ class Program:
 
     
     def run_queries(self):
-        queries.NumberOfUsersActivitiesTrackpoints(self) # task 1
+        #queries.NumberOfUsersActivitiesTrackpoints(self) # task 1
+        queries.AverageNumberOfActivities(self) # task 2
 
 
     @staticmethod

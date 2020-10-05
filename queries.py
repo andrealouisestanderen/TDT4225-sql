@@ -5,9 +5,11 @@ from program import Program
 1. How many users, activities and trackpoints are there in the dataset 
     (after it is inserted into the database).
 """
+
+
 def NumberOfUsersActivitiesTrackpoints(program):
     querylist = ['SELECT COUNT(*) FROM User', 'SELECT COUNT(*) FROM Activity',
-               'SELECT COUNT(*) FROM TrackPoint']
+                 'SELECT COUNT(*) FROM TrackPoint']
     tables = ['users', 'activities', 'trackpoints']
     for i, q in enumerate(querylist):
         program.cursor.execute(q)
@@ -22,8 +24,12 @@ def NumberOfUsersActivitiesTrackpoints(program):
 """
 
 
-def AverageNumberOfActivities():
-    query = ''
+def AverageNumberOfActivities(program):
+    #query = 'SELECT COUNT(Activity.id) FROM User INNER JOIN Activity ON User.id=Activity.user_id GROUP BY User.id'
+    query = 'SELECT AVG(ActivitiesCount) FROM (SELECT User.id AS UserID, COUNT(*) AS ActivitiesCount FROM User INNER JOIN Activity ON User.id=Activity.user_id GROUP BY User.id) AS avgAct'
+    program.cursor.execute(query)
+    result = str(program.cursor.fetchall()[0])[10:-4] # Should be derrived in a different manner
+    print("Average number of activities per user: " + result)
 
 
 """
@@ -132,4 +138,3 @@ def UsersActivityWithCoordinates(lat, lon):
 
 def UsersMostUsedTransportationMode():
     query = ''
-
