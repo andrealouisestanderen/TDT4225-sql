@@ -1,4 +1,5 @@
 from DbConnector import DbConnector
+import queries
 from tabulate import tabulate
 import os
 import datetime
@@ -236,6 +237,10 @@ class Program:
 
         self.db_connection.commit()
 
+    
+    def run_queries(self):
+        queries.NumberOfUsersActivitiesTrackpoints(self) # task 1
+
 
     @staticmethod
     def count_lines(file):
@@ -287,7 +292,9 @@ def main():
 
         #program.insert_data()
 
-        _ = program.fetch_data(table_name="TrackPoint")
+        #_ = program.fetch_data(table_name="TrackPoint")
+
+        program.run_queries()
 
     except Exception as e:
         print("ERROR: Failed to use database:", e)

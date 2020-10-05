@@ -1,63 +1,88 @@
-# Queries to insert: 
+from program import Program
+# Queries to insert:
+
 """
 1. How many users, activities and trackpoints are there in the dataset 
     (after it is inserted into the database).
 """
-def NumberOfUsers():
-    query=''
+def NumberOfUsersActivitiesTrackpoints(program):
+    querylist = ['SELECT COUNT(*) FROM User', 'SELECT COUNT(*) FROM Activity',
+               'SELECT COUNT(*) FROM TrackPoint']
+    tables = ['users', 'activities', 'trackpoints']
+    for i, q in enumerate(querylist):
+        program.cursor.execute(q)
+        result = str(program.cursor.fetchone()[0])
+        print("Number of " + tables[i] + ": " + result + ".\n")
 
-def NumberOfActivities():
-    query=''
+    program.db_connection.commit()
 
-def NumberOfTrackpoints():
-    query=''
 
 """
 2. Find the average number of activities per user.
 """
+
+
 def AverageNumberOfActivities():
-    query=''
+    query = ''
+
 
 """
 3. Find the top 20 users with the highest number of activities.
 """
+
+
 def TopNUsersMostActivities(n):
-    query=''
+    query = ''
 
 
 """
 4. Find all users who have taken a taxi.
 """
+
+
 def UsersTakeTaxi():
-    query=''
+    query = ''
+
 
 """
 5. Find all types of transportation modes and count how many activities that are
     tagged with these transportation mode labels. Do not count the rows where the
     mode is null.
 """
+
+
 def TypesAndAmountofTransportationModes():
-    query=''
+    query = ''
+
 
 """
 6. a) Find the year with the most activities.
     b) Is this also the year with most recorded hours?
 """
+
+
 def YearMostActivities():
-    query=''
+    query = ''
+
 
 def YearMostRecordedHours():
-    query=''
+    query = ''
+
 
 def MostActivitiesAndRecordedHours():
     most_activities_year = YearMostActivities()
     most_recorded_hours_year = YearMostRecordedHours()
     return most_activities_year == most_recorded_hours_year
+
+
 """
 7. Find the total distance (in km) ​walked​ in 2008, by user with id=112.
 """
+
+
 def DistanceWalked(year, user):
-    query=''
+    query = ''
+
 
 """
 8. Find the top 20 users who have gained the most altitude ​meters​.
@@ -65,24 +90,33 @@ def DistanceWalked(year, user):
     ○ Remember that some altitude-values are invalid
     ○ Tip: ∑(tp n .altitude − tp n−1 .altitude), tp n .altitude > tp n−1 .altitude
 """
+
+
 def TopNUsersMostAltitude(n):
-    query=''
+    query = ''
+
 
 """
 9. Find all users who have invalid activities, and the number of invalid activities per user
     ○ An invalid activity is defined as an activity with consecutive trackpoints where 
         the timestamps deviate with at least 5 minutes.
 """
+
+
 def UsersAmountOfInvalidActivities():
-    query=''
+    query = ''
+
 
 """
 10. Find the users who have tracked an activity in the Forbidden City of Beijing.
     ○ In this question you can consider the Forbidden City to have coordinates
         that correspond to: ​lat ​39.916, lon 116.397.
 """
+
+
 def UsersActivityWithCoordinates(lat, lon):
-    query=''
+    query = ''
+
 
 """
 11. Find all users who have registered transportation_mode and their most used
@@ -94,6 +128,8 @@ def UsersActivityWithCoordinates(lat, lon):
         to include in your answer (choose one).
     ○ Do not count the rows where the mode is null.
 """
+
+
 def UsersMostUsedTransportationMode():
-    quer=''
+    query = ''
 
