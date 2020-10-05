@@ -285,8 +285,6 @@ def main():
         #program.create_table(table_name="Activity",query=query_activity)
         #program.create_table(table_name="TrackPoint", query=query_trackpoint)
 
-        #program.make_user()
-        #program.make_activity()
         #program.insert_data()
 
         _ = program.fetch_data(table_name="TrackPoint")
