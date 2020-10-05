@@ -245,8 +245,8 @@ class Program:
         #queries.UsersTakeTaxi(self) # task 4
         #queries.TypesAndAmountofTransportationModes(self) # task 5
         #queries.YearMostActivities(self) # task 6a
-        #queries.YearMostRecordedHours(self) # task 6b
-        queries.MostActivitiesAndRecordedHours(self)
+        #queries.MostActivitiesAndRecordedHours(self) # task 6b
+        queries.DistanceWalked(self, 2008, 112) # task 7
 
 
 

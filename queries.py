@@ -1,4 +1,5 @@
 from program import Program
+from math import sin, cos, sqrt, atan2, radians
 # Queries to insert:
 
 """
@@ -13,6 +14,7 @@ def NumberOfUsersActivitiesTrackpoints(program):
     tables = ['users', 'activities', 'trackpoints']
     for i, q in enumerate(querylist):
         program.cursor.execute(q)
+        # we might have to get this value with sql
         result = str(program.cursor.fetchone()[0])
         print("Number of " + tables[i] + ": " + result + ".\n")
 
@@ -26,9 +28,9 @@ def NumberOfUsersActivitiesTrackpoints(program):
 
 def AverageNumberOfActivities(program):
     query = ('SELECT AVG(ActivitiesCount) FROM '
-            '(SELECT User.id AS UserID, COUNT(*) AS ActivitiesCount FROM '
-            'User INNER JOIN Activity ON User.id=Activity.user_id '
-            'GROUP BY User.id) AS avgAct')
+             '(SELECT User.id AS UserID, COUNT(*) AS ActivitiesCount FROM '
+             'User INNER JOIN Activity ON User.id=Activity.user_id '
+             'GROUP BY User.id) AS avgAct')
     program.cursor.execute(query)
     # Should be derrived in a different manner:
     result = str(program.cursor.fetchall()[0])[10:-4]
@@ -43,14 +45,14 @@ def AverageNumberOfActivities(program):
 
 def TopNUsersMostActivities(program, n):
     query = ('SELECT User.id AS UserID, COUNT(*) AS ActivitiesCount FROM '
-            'User INNER JOIN Activity ON User.id=Activity.user_id '
-            'GROUP BY User.id ORDER BY ActivitiesCount DESC LIMIT ' + str(n))
+             'User INNER JOIN Activity ON User.id=Activity.user_id '
+             'GROUP BY User.id ORDER BY ActivitiesCount DESC LIMIT ' + str(n))
     program.cursor.execute(query)
     result = program.cursor.fetchall()
     for i, res in enumerate(result):
         print("Rank:    " + str(i+1) + "    |     "
-            "User:    " + str(res[0]) + "    |     "
-            "# of activities:  " + str(res[1]) + ".")
+              "User:    " + str(res[0]) + "    |     "
+              "# of activities:  " + str(res[1]) + ".")
     program.db_connection.commit()
 
 
@@ -61,9 +63,9 @@ def TopNUsersMostActivities(program, n):
 
 def UsersTakeTaxi(program):
     query = ('SELECT DISTINCT User.id, '
-            'Activity.transportation_mode FROM User '
-            'INNER JOIN Activity ON User.id=Activity.user_id '
-            'WHERE Activity.transportation_mode="taxi"')
+             'Activity.transportation_mode FROM User '
+             'INNER JOIN Activity ON User.id=Activity.user_id '
+             'WHERE Activity.transportation_mode="taxi"')
     program.cursor.execute(query)
     result = program.cursor.fetchall()
     print("Users who have taken taxi: \n")
@@ -82,16 +84,16 @@ def UsersTakeTaxi(program):
 
 def TypesAndAmountofTransportationModes(program):
     query = ('SELECT Activity.transportation_mode, '
-            'Count(Activity.transportation_mode) AS TransportationCount '
-            'FROM Activity WHERE Activity.transportation_mode!="-" '
-            'GROUP BY Activity.transportation_mode '
-            'ORDER BY TransportationCount DESC')
+             'Count(Activity.transportation_mode) AS TransportationCount '
+             'FROM Activity WHERE Activity.transportation_mode!="-" '
+             'GROUP BY Activity.transportation_mode '
+             'ORDER BY TransportationCount DESC')
     program.cursor.execute(query)
     result = program.cursor.fetchall()
     print("Transportation modes: \n")
     for res in result:
         print("|    Transportation mode: " + str(res[0] + ",").ljust(15) +
-            "Number of times used: " + str(res[1]).ljust(15) + "|")
+              "Number of times used: " + str(res[1]).ljust(15) + "|")
     program.db_connection.commit()
 
 
@@ -103,31 +105,31 @@ def TypesAndAmountofTransportationModes(program):
 
 def YearMostActivities(program):
     query = ('SELECT Year, ActivitiesPerYear FROM '
-            '(SELECT YEAR(Activity.start_date_time) AS Year, '
-            'COUNT(*) AS ActivitiesPerYear FROM Activity '
-            'GROUP BY Year '
-            'ORDER BY ActivitiesPerYear DESC) AS YearAct')
+             '(SELECT YEAR(Activity.start_date_time) AS Year, '
+             'COUNT(*) AS ActivitiesPerYear FROM Activity '
+             'GROUP BY Year '
+             'ORDER BY ActivitiesPerYear DESC) AS YearAct')
     program.cursor.execute(query)
     result = program.cursor.fetchall()[0]
-    print("Year: " + str(result[0]) + 
-            " has the most activities, with: " + 
-            str(result[1]) + " actvivities.")
+    print("Year: " + str(result[0]) +
+          " has the most activities, with: " +
+          str(result[1]) + " actvivities.")
     program.db_connection.commit()
     return str(result[0])
 
 
 def YearMostRecordedHours(program):
     query = ('SELECT Year, SUM(Hours) AS HoursOfYear FROM '
-            '(SELECT YEAR(Activity.start_date_time) AS Year, '
-            'TIMEDIFF(Activity.end_date_time, Activity.start_date_time) AS Hours '
-            'FROM Activity) AS YearHours '
-            'GROUP BY Year '
-            'ORDER BY HoursOfYear DESC')
+             '(SELECT YEAR(Activity.start_date_time) AS Year, '
+             'TIMEDIFF(Activity.end_date_time, Activity.start_date_time) AS Hours '
+             'FROM Activity) AS YearHours '
+             'GROUP BY Year '
+             'ORDER BY HoursOfYear DESC')
     program.cursor.execute(query)
     result = program.cursor.fetchall()[0]
-    print("Year: " + str(result[0]) + 
-            " has the most recorded hours, with: " +
-            str(result[1]) + " recorded hours.\n\n")
+    print("Year: " + str(result[0]) +
+          " has the most recorded hours, with: " +
+          str(result[1]) + " recorded hours.\n\n")
     program.db_connection.commit()
     return str(result[0])
 
@@ -138,20 +140,41 @@ def MostActivitiesAndRecordedHours(program):
     same_year = str(most_activities_year == most_recorded_hours_year)
     if most_activities_year == most_recorded_hours_year:
         print("The year with the most activities, " + most_activities_year +
-                " is also the year with most recorded hours.")
+              " is also the year with most recorded hours.")
     else:
         print("The year with the most activities, " + most_activities_year +
-                " is not the same year with most recorded hours, " +
-                most_recorded_hours_year + ".")
+              " is not the same year with most recorded hours, " +
+              most_recorded_hours_year + ".")
 
 
 """
 7. Find the total distance (in km) ​walked​ in 2008, by user with id=112.
 """
 
+# Denne finner ingen user_id=112, bare user_id=010...????
+def DistanceWalked(program, year, user):
+    query = ('SELECT TrackPoint.lat, TrackPoint.lon FROM User '
+            'JOIN Activity ON User.id=Activity.user_id '
+            'JOIN TrackPoint ON Activity.id=TrackPoint.activity_id '
+            'WHERE Activity.transportation_mode="walk" '
+            'AND User.id="'+str(user)+'" '
+            'AND YEAR(Activity.start_date_time)="'+str(year)+'"')
+    program.cursor.execute(query)
+    result = program.cursor.fetchall()
+    print("Result: " + str(result)) # Use LonLatToKm to convert 1 distance to km and then summarize all distances
+    program.db_connection.commit()
 
-def DistanceWalked(year, user):
-    query = ''
+
+def LonLatToKm(lon1, lat1, lon2, lat2):
+    R = 6373.0  # approximate radius of earth
+
+    dlon = radians(lon2) - radians(lon1)
+    dlat = radians(lat2) - radians(lat1)
+
+    a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
+    c = 2 * atan2(sqrt(a), sqrt(1 - a))
+
+    return R * c
 
 
 """
