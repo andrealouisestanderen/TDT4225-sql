@@ -170,7 +170,7 @@ def DistanceWalked(program, year, user):
             dist = haversine(result[i][0:2],result[i+1][0:2]) 
             tot_dist+=dist
 
-    print("Total distance walked in", year, "by user with id", user, ":", tot_dist, "km") # Use LonLatToKm to convert 1 distance to km and then summarize all distances
+    print("Total distance walked in", year, "by user with id", user, ":", tot_dist, "km") 
     program.db_connection.commit()
 
 
