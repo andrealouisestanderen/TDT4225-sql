@@ -1,5 +1,6 @@
 from program import Program
 from math import sin, cos, sqrt, atan2, radians
+from haversine import haversine
 # Queries to insert:
 
 """
@@ -153,28 +154,24 @@ def MostActivitiesAndRecordedHours(program):
 
 # Denne finner ingen user_id=112, bare user_id=010...????
 def DistanceWalked(program, year, user):
-    query = ('SELECT TrackPoint.lat, TrackPoint.lon FROM User '
-            'JOIN Activity ON User.id=Activity.user_id '
-            'JOIN TrackPoint ON Activity.id=TrackPoint.activity_id '
+    query = ('SELECT TrackPoint.lat, TrackPoint.lon, TrackPoint.activity_id FROM Activity '
+            'INNER JOIN TrackPoint ON Activity.id=TrackPoint.activity_id '
             'WHERE Activity.transportation_mode="walk" '
-            'AND User.id="'+str(user)+'" '
+            'AND Activity.user_id="'+str(user)+'" '
             'AND YEAR(Activity.start_date_time)="'+str(year)+'"')
     program.cursor.execute(query)
     result = program.cursor.fetchall()
-    print("Result: " + str(result)) # Use LonLatToKm to convert 1 distance to km and then summarize all distances
+    tot_dist = 0
+   
+    for i in range (len(result)-1):
+        # Check if the trackpoints is in the same activity
+        if(result[i][2]==result[i+1][2]): 
+            # Haversine calculate distance between latitude longitude pairs 
+            dist = haversine(result[i][0:2],result[i+1][0:2]) 
+            tot_dist+=dist
+
+    print("Total distance walked in", year, "by user with id", user, ":", tot_dist, "km") # Use LonLatToKm to convert 1 distance to km and then summarize all distances
     program.db_connection.commit()
-
-
-def LonLatToKm(lon1, lat1, lon2, lat2):
-    R = 6373.0  # approximate radius of earth
-
-    dlon = radians(lon2) - radians(lon1)
-    dlat = radians(lat2) - radians(lat1)
-
-    a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
-    c = 2 * atan2(sqrt(a), sqrt(1 - a))
-
-    return R * c
 
 
 """
