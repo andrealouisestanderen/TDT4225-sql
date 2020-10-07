@@ -247,7 +247,8 @@ class Program:
         #queries.MostActivitiesAndRecordedHours(self) # task 6b
         #queries.DistanceWalked(self, 2008, 112) # task 7
         #queries.UsersAmountOfInvalidActivities(self)
-        queries.UsersActivityWithCoordinates(self)
+        #queries.UsersActivityWithCoordinates(self)
+        queries.UsersMostUsedTransportationMode(self)
 
 
 

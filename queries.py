@@ -242,5 +242,19 @@ def UsersActivityWithCoordinates(program):
 """
 
 
-def UsersMostUsedTransportationMode():
-    query = ''
+def UsersMostUsedTransportationMode(program):
+    query = 'SELECT max_count.user_id, transportation_mode ' \
+            'FROM (SELECT user_id, MAX(mode_count) as maxcount FROM (SELECT user_id, COUNT(transportation_mode) ' \
+            'as mode_count, transportation_mode ' \
+            'FROM Activity A WHERE transportation_mode != "-" ' \
+            'GROUP BY transportation_mode, user_id ' \
+            'ORDER BY user_id) as tm_mode ' \
+            'GROUP BY user_id) as max_count ' \
+            'JOIN (SELECT user_id, COUNT(transportation_mode) as mode_count, transportation_mode ' \
+            'FROM Activity A WHERE transportation_mode != "-" GROUP BY transportation_mode, user_id ORDER BY user_id) ' \
+            'as transportation_count ON max_count.user_id = transportation_count.user_id ' \
+            'WHERE max_count.maxcount = transportation_count.mode_count GROUP BY 1'
+    program.cursor.execute(query)
+    result = program.cursor.fetchall()
+    program.db_connection.commit()
+    print(result)
