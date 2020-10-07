@@ -236,7 +236,6 @@ class Program:
                         continue
 
         self.db_connection.commit()
-
     
     def run_queries(self):
         #queries.NumberOfUsersActivitiesTrackpoints(self) # task 1
@@ -246,7 +245,9 @@ class Program:
         #queries.TypesAndAmountofTransportationModes(self) # task 5
         #queries.YearMostActivities(self) # task 6a
         #queries.MostActivitiesAndRecordedHours(self) # task 6b
-        queries.DistanceWalked(self, 2008, 112) # task 7
+        #queries.DistanceWalked(self, 2008, 112) # task 7
+        #queries.UsersAmountOfInvalidActivities(self)
+        queries.UsersActivityWithCoordinates(self)
 
 
 
@@ -303,6 +304,7 @@ def main():
         #_ = program.fetch_data(table_name="TrackPoint")
 
         program.run_queries()
+
 
     except Exception as e:
         print("ERROR: Failed to use database:", e)
