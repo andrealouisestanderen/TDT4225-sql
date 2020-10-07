@@ -191,6 +191,7 @@ class Program:
         return trackpoints
 
     def insert_data(self):
+        activity_id = 1
         for id in self.subfolders:
             if id in self.labeled:
                 query = "INSERT INTO User (id, has_labels) VALUES('%s', 1)"
@@ -198,7 +199,6 @@ class Program:
                 query = "INSERT INTO User (id, has_labels) VALUES ('%s', 0);"
             self.cursor.execute(query % id)
             print("Inserted user %s" % id)
-            activity_id = 1
             # Going through the files for non-labeled users
             if id not in self.labeled:
                 labeled = False
@@ -277,15 +277,15 @@ def main():
     try:
         program = Program()
 
-        #program.drop_table(table_name="TrackPoint")
-        #program.drop_table(table_name="Activity")
-        #program.drop_table(table_name="User")
+        program.drop_table(table_name="TrackPoint")
+        program.drop_table(table_name="Activity")
+        program.drop_table(table_name="User")
 
-        #program.create_table(table_name="User",query=query_user)
-        #program.create_table(table_name="Activity",query=query_activity)
-        #program.create_table(table_name="TrackPoint", query=query_trackpoint)
+        program.create_table(table_name="User",query=query_user)
+        program.create_table(table_name="Activity",query=query_activity)
+        program.create_table(table_name="TrackPoint", query=query_trackpoint)
 
-        #program.insert_data()
+        program.insert_data()
 
         _ = program.fetch_data(table_name="TrackPoint")
 
