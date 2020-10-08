@@ -1,7 +1,9 @@
 from program import Program
 from math import sin, cos, sqrt, atan2, radians
 from haversine import haversine
-# Queries to insert:
+"""
+    This file stores all the queries.
+"""
 
 """
 1. How many users, activities and trackpoints are there in the dataset 
@@ -15,7 +17,6 @@ def NumberOfUsersActivitiesTrackpoints(program):
     tables = ['users', 'activities', 'trackpoints']
     for i, q in enumerate(querylist):
         program.cursor.execute(q)
-        # we might have to get this value with sql
         result = str(program.cursor.fetchone()[0])
         print("Number of " + tables[i] + ": " + result + ".\n")
 
@@ -33,7 +34,6 @@ def AverageNumberOfActivities(program):
              'User INNER JOIN Activity ON User.id=Activity.user_id '
              'GROUP BY User.id) AS avgAct')
     program.cursor.execute(query)
-    # Should be derrived in a different manner:
     result = str(program.cursor.fetchall()[0])[10:-4]
     print("Average number of activities per user: " + result)
     program.db_connection.commit()
@@ -152,25 +152,25 @@ def MostActivitiesAndRecordedHours(program):
 7. Find the total distance (in km) ​walked​ in 2008, by user with id=112.
 """
 
-# Denne finner ingen user_id=112, bare user_id=010...????
 def DistanceWalked(program, year, user):
     query = ('SELECT TrackPoint.lat, TrackPoint.lon, TrackPoint.activity_id FROM Activity '
-            'INNER JOIN TrackPoint ON Activity.id=TrackPoint.activity_id '
-            'WHERE Activity.transportation_mode="walk" '
-            'AND Activity.user_id="'+str(user)+'" '
-            'AND YEAR(Activity.start_date_time)="'+str(year)+'"')
+             'INNER JOIN TrackPoint ON Activity.id=TrackPoint.activity_id '
+             'WHERE Activity.transportation_mode="walk" '
+             'AND Activity.user_id="'+str(user)+'" '
+             'AND YEAR(Activity.start_date_time)="'+str(year)+'"')
     program.cursor.execute(query)
     result = program.cursor.fetchall()
     tot_dist = 0
-   
-    for i in range (len(result)-1):
-        # Check if the trackpoints is in the same activity
-        if(result[i][2]==result[i+1][2]): 
-            # Haversine calculate distance between latitude longitude pairs 
-            dist = haversine(result[i][0:2],result[i+1][0:2]) 
-            tot_dist+=dist
 
-    print("Total distance walked in", year, "by user with id", user, ":", tot_dist, "km") 
+    for i in range(len(result)-1):
+        # Check if the trackpoints is in the same activity
+        if(result[i][2] == result[i+1][2]):
+            # Haversine calculate distance between latitude longitude pairs
+            dist = haversine(result[i][0:2], result[i+1][0:2])
+            tot_dist += dist
+
+    print("Total distance walked in", year,
+          "by user with id", user, ":", tot_dist, "km")
     program.db_connection.commit()
 
 
@@ -182,8 +182,34 @@ def DistanceWalked(program, year, user):
 """
 
 
-def TopNUsersMostAltitude(n):
-    query = ''
+def Top20UsersMostAltitude(program):
+    ids = {}
+    for id in program.ids:
+        altitude_gained = 0
+        query = ('SELECT TrackPoint.altitude '
+                'FROM Activity JOIN TrackPoint ON Activity.id=TrackPoint.activity_id '
+                'WHERE Activity.user_id = %s AND TrackPoint.altitude > 0')
+        program.cursor.execute(query % (id))
+        results = program.cursor.fetchall()
+        
+        for i in range(len(results)-1):
+            
+            if results[i+1][0]>results[i][0]:
+                altitude_gained += (results[i+1][0]-results[i][0])
+        if ids:
+            ids = {k: v for k, v in sorted(ids.items(), key=lambda item: item[1])}
+            if altitude_gained > ids[next(iter(ids))]:
+                if len(ids) == 20:
+                    del ids[next(iter(ids))] # removes first element in ids
+                    ids[id] = altitude_gained
+                else:
+                    ids[id] = altitude_gained
+        else:
+            ids[id] = altitude_gained
+    
+    for id in ids:
+        print('User: ' + str(id) + ' with altitude: ' + str(ids[id]) + '\n')
+
 
 
 """
@@ -215,16 +241,15 @@ def UsersAmountOfInvalidActivities(program):
 
 
 def UsersActivityWithCoordinates(program):
-    query = ('SELECT DISTINCT user_id ' \
-            'FROM Activity A JOIN TrackPoint T ' \
-            'ON A.id = T.activity_id ' \
-            'WHERE T.lon LIKE "116.397%" ' \
-            'AND T.lat LIKE "39.916%" ;')
+    query = ('SELECT DISTINCT user_id '
+             'FROM Activity A JOIN TrackPoint T '
+             'ON A.id = T.activity_id '
+             'WHERE T.lon LIKE "116.397%" '
+             'AND T.lat LIKE "39.916%" ;')
     program.cursor.execute(query)
     result = program.cursor.fetchall()
     program.db_connection.commit()
     print(result)
-
 
 
 """

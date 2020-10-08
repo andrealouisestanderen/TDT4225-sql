@@ -83,61 +83,6 @@ class Program:
             dict[start_date_time] = transportation_mode
         return dict
 
-    def make_user(self):
-        for id in self.subfolders:
-            if id in self.labeled:
-                query = "INSERT INTO User (id, has_labels) VALUES('%s', 1)"
-            else:
-                query = "INSERT INTO User (id, has_labels) VALUES ('%s', 0);"
-            self.cursor.execute(query % (id))
-        self.db_connection.commit()
-
-    def make_activity(self):
-        # Iterates over all the users
-        activity_id = 1
-        for user_id in self.ids:
-            # Checking if they are labeled
-            if user_id not in self.labeled:
-                print(user_id, "is not labeled.")
-                # Going through the files for non-labeled users
-                for (root, dirs, files) in os.walk('dataset/Data/'+ user_id, topdown=False):
-                    for file in files:
-                        #Ignoring .-files
-                        if not file.startswith('.'):
-                            # Saving data
-                            start_date_time, end_date_time = self.file_reader(os.path.join(root, file), True, user_id)
-                            #Start_date_time = None if the file is too long
-                            if start_date_time:
-                                transportation_mode = "-"
-                                query = "INSERT INTO Activity (user_id, transportation_mode, start_date_time, end_date_time) VALUES ('%s', '%s', '%s', '%s')"
-                                self.cursor.execute(query % (user_id, transportation_mode, start_date_time, end_date_time))
-                                self.db_connection.commit()
-                                self.make_trackpoint(activity_id, user_id)
-                                print("ACTIVITY IS INSERTED:", activity_id)
-                                activity_id+=1
-                        else:
-                            continue
-                    
-            else:
-                print(user_id, "is labeled.... :'(")
-                for (root, dirs, files) in os.walk('dataset/Data/'+user_id, topdown=False):
-                    for file in files:
-                        if not (file.startswith('.') or file =="labels.txt"):
-                            start_date_time, end_date_time = self.file_reader(os.path.join(root, file), True, user_id)
-                            if start_date_time:
-                                labels = self.read_labels('dataset/Data/'+user_id+'/labels.txt')
-                                if start_date_time in labels:
-                                    transportation_mode = labels.get(start_date_time)
-                                else:
-                                    transportation_mode = "-"
-                                query = "INSERT INTO Activity (user_id, transportation_mode, start_date_time, end_date_time) VALUES ('%s', '%s', '%s', '%s')"
-                                self.cursor.execute(query % (user_id, transportation_mode, start_date_time, end_date_time))
-                                self.db_connection.commit()
-                                self.make_trackpoint(activity_id, user_id)
-                                print("ACTIVITY IS INSERTED:", activity_id)
-                                activity_id+=1
-                        else:
-                            continue
 
 
     def file_reader_trackpoint(self, filepath, activity_id):
@@ -166,30 +111,6 @@ class Program:
 
 
 
-    def make_trackpoint(self, activity_id, user_id):
-        #query mangler activity_id
-        query = "INSERT INTO TrackPoint (activity_id, lat, lon, altitude, date_days, date_time) VALUES (%s, %s, %s, %s, %s, %s)"
-        for (root, dirs, files) in os.walk('dataset/Data/'+ user_id, topdown=False):
-            for file in files:
-                if (not (file.startswith('.'))) and (user_id in self.long_files and file not in self.long_files.get(user_id)):
-                    trackpoints = self.file_reader_trackpoint(os.path.join(root, file), activity_id)
-                    self.cursor.executemany(query, trackpoints)
-                    self.db_connection.commit()
-
-    def make_trackpoint_test(self, activity_id, user_id):
-        trackpoints = []
-        i = 0
-        print("Start")
-        for (root, dirs, files) in os.walk('dataset/Data/'+ user_id, topdown=False):
-            print("Root: ", root)
-            print("Dirs: ", dirs)
-            print("Files: ", files)
-            for file in files:
-                if not (file.startswith('.')):
-                    trackpoints.append(self.file_reader_trackpoint(os.path.join(root, file), activity_id))
-                    print("Added trackpoint" + str(i))
-                    i+=1
-        return trackpoints
 
     def insert_data(self):
         for id in self.subfolders:
@@ -238,6 +159,9 @@ class Program:
         self.db_connection.commit()
     
     def run_queries(self):
+        """
+            Uncomment the queries that you wish to run.
+        """
         #queries.NumberOfUsersActivitiesTrackpoints(self) # task 1
         #queries.AverageNumberOfActivities(self) # task 2
         #queries.TopNUsersMostActivities(self, 20) # task 3
@@ -246,9 +170,10 @@ class Program:
         #queries.YearMostActivities(self) # task 6a
         #queries.MostActivitiesAndRecordedHours(self) # task 6b
         #queries.DistanceWalked(self, 2008, 112) # task 7
-        #queries.UsersAmountOfInvalidActivities(self)
+        #queries.Top20UsersMostAltitude(self) # task 8
+        #queries.UsersAmountOfInvalidActivities(self) 
         #queries.UsersActivityWithCoordinates(self)
-        queries.UsersMostUsedTransportationMode(self)
+        #queries.UsersMostUsedTransportationMode(self)
 
 
 
@@ -291,6 +216,10 @@ def main():
 
     try:
         program = Program()
+
+        """
+            Uncomment if configuring a new database.
+        """
 
         #program.drop_table(table_name="TrackPoint")
         #program.drop_table(table_name="Activity")
