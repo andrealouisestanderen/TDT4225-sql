@@ -193,8 +193,18 @@ def TopNUsersMostAltitude(n):
 """
 
 
-def UsersAmountOfInvalidActivities():
-    query = ''
+def UsersAmountOfInvalidActivities(program):
+    query = 'SELECT user_id, COUNT(activity_id) ' \
+            'FROM (Activity A ' \
+            'JOIN (SELECT DISTINCT T1.activity_id ' \
+            'FROM TrackPoint T1 JOIN TrackPoint T2 ON T1.activity_id = T2.activity_id ' \
+            'WHERE TIMESTAMPDIFF(MINUTE, T1.date_time, T2.date_time) > 5 AND (T1.id + 1) = T2.id) ' \
+            'AS inv_act ON A.id = inv_act.activity_id)' \
+            'GROUP BY A.user_id;'
+    program.cursor.execute(query)
+    result = program.cursor.fetchall()
+    program.db_connection.commit()
+    print(result)
 
 
 """
@@ -204,8 +214,17 @@ def UsersAmountOfInvalidActivities():
 """
 
 
-def UsersActivityWithCoordinates(lat, lon):
-    query = ''
+def UsersActivityWithCoordinates(program):
+    query = ('SELECT DISTINCT user_id ' \
+            'FROM Activity A JOIN TrackPoint T ' \
+            'ON A.id = T.activity_id ' \
+            'WHERE T.lon LIKE "116.397%" ' \
+            'AND T.lat LIKE "39.916%" ;')
+    program.cursor.execute(query)
+    result = program.cursor.fetchall()
+    program.db_connection.commit()
+    print(result)
+
 
 
 """
@@ -220,5 +239,19 @@ def UsersActivityWithCoordinates(lat, lon):
 """
 
 
-def UsersMostUsedTransportationMode():
-    query = ''
+def UsersMostUsedTransportationMode(program):
+    query = 'SELECT max_count.user_id, transportation_mode ' \
+            'FROM (SELECT user_id, MAX(mode_count) as maxcount FROM (SELECT user_id, COUNT(transportation_mode) ' \
+            'as mode_count, transportation_mode ' \
+            'FROM Activity A WHERE transportation_mode != "-" ' \
+            'GROUP BY transportation_mode, user_id ' \
+            'ORDER BY user_id) as tm_mode ' \
+            'GROUP BY user_id) as max_count ' \
+            'JOIN (SELECT user_id, COUNT(transportation_mode) as mode_count, transportation_mode ' \
+            'FROM Activity A WHERE transportation_mode != "-" GROUP BY transportation_mode, user_id ORDER BY user_id) ' \
+            'as transportation_count ON max_count.user_id = transportation_count.user_id ' \
+            'WHERE max_count.maxcount = transportation_count.mode_count GROUP BY 1'
+    program.cursor.execute(query)
+    result = program.cursor.fetchall()
+    program.db_connection.commit()
+    print(result)
